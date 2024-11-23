@@ -3,23 +3,29 @@ import { useNavigate } from 'react-router-dom';
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [dob, setDob] = useState('');  
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const validateInputs = () => {
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || !dob) {
       setError('All fields are required');
       return false;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
+      setError('Por favor, ingresa un correo válido');
       return false;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('La contraseña no coincide');
+      return false;
+    }
+    if (new Date(dob) >= new Date()) {
+      setError('La fecha de nacimiento no puede ser en el futuro!');
       return false;
     }
     setError('');
@@ -32,24 +38,34 @@ function RegisterPage() {
 
     setLoading(true);
     try {
-      // Simula el proceso de registro
+      // Verificar si el usuario ya está registrado
+      const existingUser = localStorage.getItem(email);
+      if (existingUser) {
+        setError('Este correo ya está registrado!');
+        setLoading(false);
+        return;
+      }
+
+      // Guardar los datos en localStorage
+      const user = { name, email, password, dob }; 
+      localStorage.setItem(email, JSON.stringify(user));
+
       setTimeout(() => {
-        // Si el registro es exitoso
-        navigate('/home');
-      }, 1000); // Simulando un retraso de 1 segundo
+        navigate('/home'); 
+      }, 2000); 
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError('Registro fallido. Por favor intenta nuevamente.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-blue-500">
       <div className="p-8 max-w-sm w-full bg-white rounded-xl shadow-lg space-y-6">
-        <h1 className="text-3xl font-semibold text-center text-blue-600">Register</h1>
+        <h1 className="text-3xl font-semibold text-center text-blue-600">Regístrate</h1>
         
-        {/* Error Message */}
+        {/* Mensaje de error */}
         {error && (
           <div className="bg-red-100 text-red-600 p-2 rounded-md text-center">
             <p>{error}</p>
@@ -57,9 +73,26 @@ function RegisterPage() {
         )}
 
         <form onSubmit={handleRegister} className="space-y-6">
+          {/* Campo de Nombre */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Nombre completo
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-2 px-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              placeholder="Ingresa tu nombre completo"
+              required
+            />
+          </div>
+
+          {/* Campo de Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              Correo electrónico
             </label>
             <input
               type="email"
@@ -67,14 +100,15 @@ function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-2 px-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-              placeholder="Enter your email"
+              placeholder="Ingresa tu correo"
               required
-              aria-describedby="email-error"
             />
           </div>
+
+          {/* Campo de Contraseña */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
+              Contraseña
             </label>
             <input
               type="password"
@@ -82,14 +116,15 @@ function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-2 px-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-              placeholder="Enter your password"
+              placeholder="Ingresa tu contraseña"
               required
-              aria-describedby="password-error"
             />
           </div>
+
+          {/* Campo de Confirmación de Contraseña */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-              Confirm Password
+              Confirmar contraseña
             </label>
             <input
               type="password"
@@ -97,24 +132,39 @@ function RegisterPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="mt-2 px-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-              placeholder="Confirm your password"
+              placeholder="Confirma tu contraseña"
               required
-              aria-describedby="confirmPassword-error"
             />
           </div>
+
+          {/* Campo de Fecha de Nacimiento */}
+          <div>
+            <label htmlFor="dob" className="block text-sm font-medium text-gray-700">
+              Fecha de nacimiento
+            </label>
+            <input
+              type="date"
+              id="dob"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              className="mt-2 px-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              required
+            />
+          </div>
+
           <button
             type="submit"
             disabled={loading}
             className={`w-full py-2 rounded-md text-white ${loading ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
           >
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? 'Registrándose...' : 'Registrarse'}
           </button>
         </form>
 
         <p className="text-sm text-center text-gray-500">
-          Already have an account?{' '}
+          Ya tienes una cuenta?{' '}
           <a href="/" className="text-blue-600 hover:underline">
-            Login here
+            Inicia sesión aquí
           </a>
         </p>
       </div>
